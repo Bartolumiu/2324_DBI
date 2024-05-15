@@ -2,9 +2,8 @@ import connection.ConnectionManager;
 import transaction.TransactionManager;
 
 import javax.swing.*;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.Statement;
+import java.awt.*;
+import java.sql.*;
 
 /**
  * MainDBI class
@@ -41,6 +40,8 @@ public class MainDBI {
                     e.printStackTrace();
                 }
             }
+
+            System.out.println("loginData[5] is not null");
             // Check if the login variables are set
             if (loginData[0] == null || loginData[1] == null || loginData[2] == null || loginData[3] == null || loginData[4] == null) {
                 // If the login variables are not set, print an error message
@@ -84,60 +85,67 @@ public class MainDBI {
 
     static class LoginGUI extends JFrame {
         public LoginGUI(String[] loginData) {
-            // Set window size
-            setSize(400, 400);
-            // Set window title
-            setTitle("DBI Login");
-            // Set visible
-            setVisible(true);
-            // Set default close operation
-            setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            // Create and display the GUI on the Event Dispatch Thread (EDT)
+            SwingUtilities.invokeLater(() -> {
+                // Set window size
+                setSize(400, 400);
+                // Set window title
+                setTitle("DBI Login");
+                // Set default close operation
+                setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-            // Create a panel
-            JPanel panel = new JPanel();
-            // Add panel to the frame
-            add(panel);
+                // Create a panel
+                JPanel panel = new JPanel();
+                // Set layout manager for the panel
+                panel.setLayout(new GridLayout(6, 2)); // Adjust layout as needed
 
-            // Create labels
-            JLabel hostLabel = new JLabel("Host:");
-            JLabel portLabel = new JLabel("Port:");
-            JLabel databaseLabel = new JLabel("Database:");
-            JLabel userLabel = new JLabel("User:");
-            JLabel passwordLabel = new JLabel("Password:");
+                // Create labels
+                JLabel hostLabel = new JLabel("Host:");
+                JLabel portLabel = new JLabel("Port:");
+                JLabel databaseLabel = new JLabel("Database:");
+                JLabel userLabel = new JLabel("User:");
+                JLabel passwordLabel = new JLabel("Password:");
 
-            // Create text fields
-            JTextField hostField = new JTextField(20);
-            JTextField portField = new JTextField(20);
-            JTextField databaseField = new JTextField(20);
-            JTextField userField = new JTextField(20);
-            JPasswordField passwordField = new JPasswordField(20);
+                // Create text fields
+                JTextField hostField = new JTextField(20);
+                JTextField portField = new JTextField(20);
+                JTextField databaseField = new JTextField(20);
+                JTextField userField = new JTextField(20);
+                JPasswordField passwordField = new JPasswordField(20);
 
-            // Create login button
-            JButton loginButton = new JButton("Login");
+                // Create login button
+                JButton loginButton = new JButton("Login");
 
-            // Add labels and text fields to the panel
-            panel.add(hostLabel);
-            panel.add(hostField);
-            panel.add(portLabel);
-            panel.add(portField);
-            panel.add(databaseLabel);
-            panel.add(databaseField);
-            panel.add(userLabel);
-            panel.add(userField);
-            panel.add(passwordLabel);
-            panel.add(passwordField);
+                // Add components to the panel
+                panel.add(hostLabel);
+                panel.add(hostField);
+                panel.add(portLabel);
+                panel.add(portField);
+                panel.add(databaseLabel);
+                panel.add(databaseField);
+                panel.add(userLabel);
+                panel.add(userField);
+                panel.add(passwordLabel);
+                panel.add(passwordField);
+                panel.add(loginButton); // Add login button to the panel
 
-            // Add login button to the panel
-            panel.add(loginButton);
+                // Add panel to the frame
+                add(panel);
 
-            // Add action listener to the login button
-            loginButton.addActionListener(e -> {
-                // Override the login variables with the values from the text fields
-                loginData[0] = hostField.getText();
-                loginData[1] = portField.getText();
-                loginData[2] = databaseField.getText();
-                loginData[3] = userField.getText();
-                loginData[4] = new String(passwordField.getPassword());
+                // Add action listener to the login button
+                loginButton.addActionListener(e -> {
+                    // Override the login variables with the values from the text fields
+                    loginData[0] = hostField.getText();
+                    loginData[1] = portField.getText();
+                    loginData[2] = databaseField.getText();
+                    loginData[3] = userField.getText();
+                    loginData[4] = new String(passwordField.getPassword());
+                    loginData[5] = "true";
+                    this.dispose();
+                });
+
+                // Set frame visible after all components are added
+                setVisible(true);
             });
         }
     }
@@ -164,56 +172,112 @@ public class MainDBI {
             add(panel);
 
             // Create buttons
-            JButton addRecordButton = new JButton("Add Record");
-            JButton updateRecordButton = new JButton("Update Record");
-            JButton deleteRecordButton = new JButton("Delete Record");
-            JButton viewRecordsButton = new JButton("View Records");
+            JButton query1 = new JButton("Run query 1");
+            JButton query2 = new JButton("Run query 2");
+            JButton query3 = new JButton("Run query 3");
+            JButton transaction1 = new JButton("Run transaction 1");
+            JButton transaction2 = new JButton("Run transaction 2");
             JButton exitButton = new JButton("Exit");
 
             // Add buttons to the panel
-            panel.add(addRecordButton);
-            panel.add(updateRecordButton);
-            panel.add(deleteRecordButton);
-            panel.add(viewRecordsButton);
+            panel.add(query1);
+            panel.add(query2);
+            panel.add(query3);
+            panel.add(transaction1);
+            panel.add(transaction2);
             panel.add(exitButton);
 
             // Add action listeners to the buttons
-            addRecordButton.addActionListener(e -> {
-                // Get table list from database
+            query1.addActionListener(e -> {
+                // Query 1: Find the average number of optional excursions booked by trip, grouped by destination city.
+                String query = "SELECT tripTo, AVG(num_excursions) AS avg_excursions_per_trip " +
+                        "FROM ( " +
+                        "    SELECT t1.tripTo, COUNT(t2.tripTo) AS num_excursions " +
+                        "    FROM T_TRIP t1 " +
+                        "    LEFT JOIN T_OPTIONAL_EXCURSION t2 ON t1.tripTo = t2.tripTo AND t1.departureDate = t2.departureDate " +
+                        "    GROUP BY t1.tripTo, t1.departureDate " +
+                        ") AS subquery " +
+                        "GROUP BY tripTo";
                 try {
-                    System.out.println(connection);
-                    // Create a statement
-                    Statement statement = MainDBI.connection.createStatement();
-
-                    // Execute query to get table list
-                    String query = "SHOW TABLES;";
-                    statement.executeQuery(query);
-
-                    // Print table list
-                    System.out.println("Tables:");
-                    ResultSet resultSet = statement.getResultSet();
+                    Statement statement = connection.createStatement();
+                    ResultSet resultSet = statement.executeQuery(query);
+                    // Process the result set
                     while (resultSet.next()) {
-                        System.out.println(resultSet.getString(1));
+                        String tripTo = resultSet.getString("tripTo");
+                        double avgExcursionsPerTrip = resultSet.getDouble("avg_excursions_per_trip");
+                        System.out.println("Destination: " + tripTo + ", Average Excursions: " + avgExcursionsPerTrip);
                     }
-
-                    // Close statement
+                    // Close statement and result set
+                    resultSet.close();
                     statement.close();
-                } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(null, "No tables found.");
-                    return;
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
                 }
-                // Ask the user for input
-                String tableName = JOptionPane.showInputDialog("Enter table name:");
-                // Get table structure from database
+            });
+
+            query2.addActionListener(e -> {
+                // Query 2: Find the total number of nights booked for trips that include a specific tourist attraction. (Donostia)
+                String query = "SELECT departureDate, SUM(numNights) AS total_nights_booked " +
+                        "FROM T_HOTEL_TRIP_CUSTOMER " +
+                        "WHERE (tripTo, departureDate) IN ( " +
+                        "    SELECT tripTo, departureDate " +
+                        "    FROM T_OPTIONAL_EXCURSION " +
+                        "    WHERE excursionTo = 'Donostia' " +
+                        ") " +
+                        "GROUP BY departureDate";
                 try {
-                    Statement statement = MainDBI.connection.createStatement();
-                    String query = "DESCRIBE " + tableName;
-                    statement.executeQuery(query);
-                } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(null, "Table does not exist");
-                    return;
+                    Statement statement = connection.createStatement();
+                    ResultSet resultSet = statement.executeQuery(query);
+                    // Process the result set
+                    while (resultSet.next()) {
+                        String departureDate = resultSet.getString("departureDate");
+                        int totalNightsBooked = resultSet.getInt("total_nights_booked");
+                        System.out.println("Departure Date: " + departureDate + ", Total Nights Booked: " + totalNightsBooked);
+                    }
+                    // Close statement and result set
+                    resultSet.close();
+                    statement.close();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
                 }
-                String values = JOptionPane.showInputDialog("Enter values (comma separated):");
+            });
+
+            query3.addActionListener(e -> {
+                // Query 3: Find the total number of customers per trip destination for trips visiting a specific tourist attraction. (Donostia)
+                String query = "SELECT tripTo, COUNT(DISTINCT customerID) AS total_customers " +
+                        "FROM T_HOTEL_TRIP_CUSTOMER " +
+                        "WHERE (tripTo, departureDate) IN ( " +
+                        "    SELECT tripTo, departureDate " +
+                        "    FROM T_OPTIONAL_EXCURSION " +
+                        "    WHERE excursionTo = 'Donostia' " +
+                        ") " +
+                        "GROUP BY tripTo";
+                try {
+                    Statement statement = connection.createStatement();
+                    ResultSet resultSet = statement.executeQuery(query);
+                    // Process the result set
+                    while (resultSet.next()) {
+                        String tripTo = resultSet.getString("tripTo");
+                        int totalCustomers = resultSet.getInt("total_customers");
+                        System.out.println("Trip Destination: " + tripTo + ", Total Customers: " + totalCustomers);
+                    }
+                    // Close statement and result set
+                    resultSet.close();
+                    statement.close();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+            });
+
+
+            transaction1.addActionListener(e -> {
+                // Call the transaction1 method
+                transaction1();
+            });
+
+            transaction2.addActionListener(e -> {
+                // Call the updateHotelAndCustomers method
+                updateCustomerAddress("C0001", "123 Main St");
             });
 
             exitButton.addActionListener(e -> {
@@ -248,5 +312,103 @@ public class MainDBI {
                 }
             });
         }
+
+        // Method to perform the transaction
+        public void transaction1() {
+            // Add a new optional excursion and update the total number of excursions booked for the corresponding trip.
+            Savepoint savepoint1 = null;
+            try {
+                // disable Autocommit
+                connection.setAutoCommit(false);
+                Queries queries = new Queries();
+                queries.insertRowGuide(connection, 50, "Daniela", 6667);
+                queries.insertRowGuide(connection, 51, "Leire", 66678);
+                // if code reached here, means main work is done successfully
+                savepoint1 = connection.setSavepoint("savedfirst2");
+                queries.insertRowGuide(connection, 52, "Stella", 66679);
+                queries.insertRowGuide(connection, 52, "Stella", 66679);
+                // now commit transaction
+                connection.commit();
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+                try {
+                    if (savepoint1 == null) {
+                        System.out.println("JDBC WHOLE Transaction rolled back successfully");
+                        // SQLException occurred when inserting first 2 insertRowGuide
+                        connection.rollback();
+                    } else {
+                        // exception occurred after savepoint
+                        // we can ignore it by rollback to the savepoint
+                        System.out.println("Exception after savepoint1. roll back successfully");
+                        connection.rollback(savepoint1);
+                        // lets commit now
+                        connection.commit();
+                    }
+                } catch (SQLException e1) {
+                    System.out.println("SQLException in rollback" + e1.getMessage());
+                }
+            } finally {
+                if (connection != null) {
+                    try {
+                        connection.close();
+                    } catch (SQLException ex) {
+                        ex.printStackTrace();
+                    }
+                }
+            }
+        }
+
+
+        public void updateCustomerAddress(String customerID, String newAddress) {
+            Savepoint savepoint1 = null;
+            try {
+                // Disable Autocommit
+                connection.setAutoCommit(false);
+
+                // Update the customer's address
+                String updateCustomerAddressQuery = "UPDATE T_CUSTOMER SET customerAddress = ? WHERE customerID = ?";
+                PreparedStatement updateCustomerAddressStatement = connection.prepareStatement(updateCustomerAddressQuery);
+                updateCustomerAddressStatement.setString(1, newAddress);
+                updateCustomerAddressStatement.setString(2, customerID);
+                updateCustomerAddressStatement.executeUpdate();
+
+                // Commit the transaction
+                connection.commit();
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+                try {
+                    // Rollback to the savepoint if an exception occurs
+                    System.out.println("Rolling back transaction...");
+                    connection.rollback();
+                } catch (SQLException e1) {
+                    System.out.println("SQLException in rollback" + e1.getMessage());
+                }
+            } finally {
+                // Close resources
+                try {
+                    if (savepoint1 != null) {
+                        connection.releaseSavepoint(savepoint1);
+                    }
+                    connection.setAutoCommit(true);
+                    if (connection != null) {
+                        connection.close();
+                    }
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }
+    }
+}
+
+class Queries {
+    private static String INSERTtourguide = "INSERT INTO T_TOURGUIDE (guideID, guideName, guidePhone) VALUES (?, ?, ?)";
+
+    public void insertRowGuide(Connection connection, int guideID, String guideName, int guidePhone) throws SQLException {
+        PreparedStatement preparedStatement = connection.prepareStatement(INSERTtourguide);
+        preparedStatement.setInt(1, guideID);
+        preparedStatement.setString(2, guideName);
+        preparedStatement.setInt(3, guidePhone);
+        preparedStatement.executeUpdate();
     }
 }

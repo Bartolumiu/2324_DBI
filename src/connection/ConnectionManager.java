@@ -55,7 +55,7 @@ public class ConnectionManager {
     public static Connection createConnection(String[] loginData) {
         // Default values if not provided
         String host, port, database, user, password;
-        host = loginData[0] == null ? "127.0.0.1" : loginData[0];
+        host = loginData[0] == null ? "192.168.1.138" : loginData[0];
         port = loginData[1] == null ? "3306" : loginData[1];
         database = loginData[2] == null ? "test" : loginData[2];
         user = loginData[3] == null ? "root" : loginData[3];

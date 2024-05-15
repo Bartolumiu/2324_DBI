@@ -74,4 +74,13 @@ public class TransactionManager {
         // Print a message to indicate that the program is exiting
 
     }
+
+    public void beginTransaction(Connection connection) {
+    }
+
+    public void commitTransaction(Connection connection) {
+    }
+
+    public void rollbackTransaction(Connection connection) {
+    }
 }
