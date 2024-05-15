@@ -276,7 +276,7 @@ public class MainDBI {
             });
 
             transaction2.addActionListener(e -> {
-                // Call the updateHotelAndCustomers method
+                // Call the updateCustomerAddress method
                 updateCustomerAddress("C0001", "123 Main St");
             });
 
